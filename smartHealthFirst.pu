@@ -1,0 +1,52 @@
+@startuml
+    skinparam componentStyle uml2
+
+    !define ICONURL https://raw.githubusercontent.com/smartsdk/architecture-diagrams/smartsdk-template/dist
+    !includeurl ICONURL/common.puml
+    !includeurl ICONURL/fiware.puml
+    !includeurl ICONURL/smartsdk.puml
+
+    node "Fiware Cloud" as fc{
+        rectangle "[Retrieving historical data]" as rhd{
+            FIWARE(wcge,"Wire Cloud GE",component)
+            FIWARE(imkge,"Identity Manager \n KeyRock GE",component)
+            FIWARE(cbdage,"Cosmos Big-Data \n Analytics GE",component)    
+            note right of wcge
+                wgt
+            end note
+            wcge -> imkge
+            wcge <- imkge
+            cbdage -> imkge
+            cbdage <- imkge
+            wcge -[hidden]left- imkge
+            
+        }
+        skinparam shadowing false
+        skinparam rectangleBorderColor white
+        rectangle "<font color=white> r" as tdown{
+            FIWARE(ocbge,"Orion Context \n Broker GE",component)
+        }
+        rhd -[hidden]down- tdown
+        cbdage -> ocbge
+        cbdage <- ocbge
+    }
+
+    node "[Collection of data]" as cof{
+        [NGSI & oHealth-Context] as ngsihc
+        rectangle "<font color=white>r" as inner{
+            [Fitbit] as fit
+            [SmartWatch] as smartw
+            [SmartPhone] as smartp
+            smartp -[hidden]left- smartw
+            smartw -[hidden]left- fit
+        }
+        ngsihc -[hidden]down- inner
+
+        ngsihc <-- fit
+        ngsihc <-- smartw
+        ngsihc <-- smartp
+    }
+
+    ocbge -[hidden]down- ngsihc
+    ngsihc --> ocbge
+@enduml

@@ -1,0 +1,68 @@
+@startuml
+    !define ICONURL https://raw.githubusercontent.com/smartsdk/architecture-diagrams/smartsdk-template/dist
+    !includeurl ICONURL/common.puml
+    !includeurl ICONURL/fiware.puml
+    !includeurl ICONURL/smartsdk.puml
+
+    skinparam shadowing false
+    skinparam rectangleBorderColor white
+    node "Fiware Cloud" as fc{
+        rectangle "[Retrieving Historical Data]" as rhd{
+            rectangle "<font color=white>r" as lef{
+                [Theseus] as thes
+                [WGT] as wgt
+                note right of wgt #48B9C9
+                    Wirecloud GE
+                end note
+                wgt -[hidden]down-thes
+                wgt -> thes
+                wgt <- thes
+            }
+            rectangle "<font color=white>r" as mid{
+                [Bifrost] as bif
+                FIWARE(imkge,"Identity Manager \n KeyRock GE",component)
+                '[Identity Manager \n KeyRock GE] as imkge
+                bif -[hidden]down-imkge
+                bif ..> imkge
+                bif <.. imkge
+            }
+            FIWARE(bdage,"Cosmos Big-Data Analytics GE",node)#48B9C9{
+            'node "Cosmos Big-Data Analytics GE" as bdage{
+                [HDFS files] as hdfsf
+                [Hive database \n query interface] as hdqi
+            }
+            wgt -> bif 
+            wgt <- bif 
+            bdage -> bif  
+            bdage <-- bif 
+        }    
+        rectangle "<font color=white> r" as tdown{
+            [PEP  \n Policy Enforcement Point] as pep
+            FIWARE(ocbge,"Orion Context \n Broker GE",component)
+            FIWARE(cc,"Cygnus \n Connector",component)            
+            ocbge -[hidden]right- pep
+            cc <- ocbge
+            pep -> ocbge
+        }
+        rhd -[hidden]down- tdown
+        cc -> bdage
+        pep <..> imkge
+        cc <..> imkge
+    }
+
+    node "[Collection of data]" as cof{
+        [NGSI & oHealth-Context] as ngsihc
+        rectangle "<font color=white>r" as inner{            
+            [SmartWatch] as smartw
+            [SmartPhone] as smartp
+            smartp -[hidden]left- smartw            
+        }
+        ngsihc -[hidden]down- inner
+
+        ngsihc <-- smartw
+        ngsihc <-- smartp
+    }
+
+    ngsihc -[hidden]down- cc
+    ngsihc -> pep
+@enduml
