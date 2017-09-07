@@ -1,0 +1,94 @@
+@startuml
+skinparam componentStyle uml2
+!define BASEURL https://raw.githubusercontent.com/smartsdk/architecture-diagrams/master
+!define ICONURL https://raw.githubusercontent.com/smartsdk/architecture-diagrams/master/dist
+!define group group #transparent
+!define alt alt #transparent
+
+
+!includeurl ICONURL/common.puml
+!includeurl ICONURL/fiware.puml
+!includeurl ICONURL/smartsdk.puml
+
+package "SmartSecurity FrontEnd" as scfrontend {
+  SMARTSDK(notificationsgui,"Notifications GUI",component)
+  SMARTSDK(userprofilegui,"User Profile GUI",component)
+  SMARTSDK(userrolegui,"User Role GUI",component)
+}
+
+package "SmartSecurity BackEnd" as scbackend {
+
+SMARTSDK(eventdetec,"Video Event Detection",component)
+SMARTSDK(actmgt,"Activities\nManagement",component)
+SMARTSDK(ssev,"Sensor Security Events\nDetection",component)
+SMARTSDK(alertsmgt,"Alerts Management",component)
+SMARTSDK(userprofilemgt,"User Profile\nManagement",component)
+SMARTSDK(ssev,"Sensor Security Events\nDetection",component) 
+   
+eventdetec -[hidden]down- ssev
+actmgt -left- eventdetec
+actmgt -right- alertsmgt
+userprofilemgt -left- alertsmgt
+userprofilemgt -up- userprofilegui
+
+
+ssev -l- alertsmgt
+  }
+
+package "Data/Context Management Core" as ctxcore {
+	interface NGSI
+	FIWARE(ctx,"Context Broker \n - Orion",component)
+	
+	FIWARE(kurento,"Stream Oriented \n- Kurento",component)
+	NGSI -left- ctx
+	NGSI -up- kurento
+
+	package "NGSI Time Series" as ngsitimeseries {
+	     SMARTSDK(Quantumleap,"Quantumleap",component)
+        [Grafana] as Grafana
+        [CrateDB] as CrateDB
+	
+	NGSI -up- ngsitimeseries
+    Quantumleap -down- CrateDB
+    CrateDB -up- Grafana
+	}
+}
+
+package "Data/Context Management SmartSDK Add-Ons" as SmartSDKAOns {
+SMARTSDK(sdk,"SDK Library for NGSI",component)
+}
+
+[Video\n Streaming] as vs
+interface Oauth
+FIWARE(keyrock,"Identity Manager (Keyrock)",component)
+keyrock -down- Oauth
+Oauth -down- scfrontend
+Oauth -down- scbackend
+scbackend -up- scfrontend
+sdk -right- NGSI
+
+interface RTSP
+vs -up- RTSP
+RTSP -up- kurento
+vs -up- sdk: **Camera Metadata**
+
+SMARTSDK(altertdata,"Alert\nDatamodel",database)
+ctx -down- altertdata
+
+FIWARE(transportdata,"Transportation\nDatamodel",database)
+ctx -down- transportdata
+
+SMARTSDK(seceventdata,"Security Event\nDatamodel",database)
+ctx -down- seceventdata
+
+
+[GPS\n Sensor] as gps1
+[Gyroscope\n Sensor] as gyro1
+[Accelerometer\n Sensor] as acc1
+
+sdk -down- gps1
+sdk -down- gyro1
+sdk -down- acc1
+NGSI -right- ssev
+NGSI -right- eventdetec
+@enduml
