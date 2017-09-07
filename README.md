@@ -1,6 +1,6 @@
 # Smart Security plantUML Architecture Diagrams
 
-
+The current architechture diagram is presented, it's not a final version since the elements and components are changing. 
 
 ## Authors
 
